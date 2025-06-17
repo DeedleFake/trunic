@@ -85,3 +85,7 @@ func MakeRune(letter string) (Rune, bool) {
 	r := unique.Make(letter)
 	return Rune{r: r}, validLetter(r)
 }
+
+func (r Rune) Image() image.Image {
+	return fontMap[r.r]
+}
