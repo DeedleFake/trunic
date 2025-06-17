@@ -1,3 +1,4 @@
+// Package trunic provides image-related functionality for the Trunic writing system.
 package trunic
 
 import (
@@ -77,15 +78,24 @@ func validLetter(r unique.Handle[string]) bool {
 	return ok
 }
 
+// Rune is a single phoneme in Trunic. A single Rune is a consonant,
+// vowel, punctuation mark, or sound-inverter circle, not a
+// combination of several of those.
+//
+// Runes are comparable. Two instances of the same phoneme are equal.
 type Rune struct {
 	r unique.Handle[string]
 }
 
+// MakeRune returns the rune for the given letter and a boolean
+// indicating if the letter is valid or not.
 func MakeRune(letter string) (Rune, bool) {
 	r := unique.Make(letter)
 	return Rune{r: r}, validLetter(r)
 }
 
+// Image returns an image of the actual Trunic rune. If r is invalid,
+// the returned image will be nil.
 func (r Rune) Image() image.Image {
 	return fontMap[r.r]
 }
