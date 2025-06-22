@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"image"
 	"io"
-	"unique"
 
 	"golang.org/x/image/webp"
 )
@@ -36,7 +35,7 @@ func loadImage(r io.Reader) image.Image {
 	return img
 }
 
-func makeFontMap() map[unique.Handle[string]]image.Image {
+func makeFontMap() map[string]image.Image {
 	letters := [...]string{
 		"a", "ar", "ah", "ay", "e", "ee",
 		"eer", "u", "er", "i", "ie", "ir",
@@ -48,7 +47,7 @@ func makeFontMap() map[unique.Handle[string]]image.Image {
 		"-", ",", ".", "!", "?", "_",
 	}
 
-	r := make(map[unique.Handle[string]]image.Image, len(letters))
+	r := make(map[string]image.Image, len(letters))
 
 	for i, letter := range letters {
 		x, y := i%6, i/6
@@ -59,13 +58,13 @@ func makeFontMap() map[unique.Handle[string]]image.Image {
 			letterOffsetY+y*(letterGapY+letterHeight)+letterHeight,
 		)
 
-		r[unique.Make(letter)] = &subimage{
+		r[letter] = &subimage{
 			Image: fontImage,
 			rect:  rect,
 		}
 	}
 
-	r[unique.Make(" ")] = &subimage{
+	r[" "] = &subimage{
 		Image: image.Transparent,
 		rect:  image.Rect(0, 0, letterWidth, letterHeight),
 	}
@@ -73,29 +72,10 @@ func makeFontMap() map[unique.Handle[string]]image.Image {
 	return r
 }
 
-func validLetter(r unique.Handle[string]) bool {
-	_, ok := fontMap[r]
-	return ok
-}
-
-// Rune is a single phoneme in Trunic. A single Rune is a consonant,
-// vowel, punctuation mark, or sound-inverter circle, not a
-// combination of several of those.
-//
-// Runes are comparable. Two instances of the same phoneme are equal.
-type Rune struct {
-	r unique.Handle[string]
-}
-
-// MakeRune returns the rune for the given letter and a boolean
-// indicating if the letter is valid or not.
-func MakeRune(letter string) (Rune, bool) {
-	r := unique.Make(letter)
-	return Rune{r: r}, validLetter(r)
-}
-
-// Image returns an image of the actual Trunic rune. If r is invalid,
-// the returned image will be nil.
-func (r Rune) Image() image.Image {
-	return fontMap[r.r]
+func Render(text string) image.Image {
+	return rowOf(
+		stackOf(fontMap["t"], fontMap["e"]),
+		fontMap["s"],
+		fontMap["t"],
+	)
 }
