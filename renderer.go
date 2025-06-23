@@ -11,12 +11,12 @@ import (
 	"github.com/tdewolff/canvas/renderers/rasterizer"
 )
 
-const letterWidthRatio = .8
+const letterWidthRatio = .6
 
 type Renderer struct {
 	Color      color.Color // Default: color.Black
 	TextHeight float64     // Default: 72
-	Thickness  float64     // Default: 10
+	Thickness  float64     // Default: 5
 
 	ph [][]string
 }
@@ -37,7 +37,7 @@ func (r *Renderer) textHeight() float64 {
 
 func (r *Renderer) thickness() float64 {
 	if r.Thickness == 0 {
-		return 10
+		return 5
 	}
 	return r.Thickness
 }
@@ -47,32 +47,34 @@ func (r *Renderer) AppendRune(ph ...string) {
 }
 
 func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
-	offset := dst.Bounds().Canon().Min
-	ox, oy := float64(-offset.X), float64(-offset.Y)
-
 	renderer := rasterizer.FromImage(dst, 1, nil)
 
 	c := canvas.NewContext(renderer)
+	c.SetFill(canvas.Paint{})
 	c.SetStrokeColor(r.color())
 	c.SetStrokeWidth(r.thickness())
 	c.SetStrokeCapper(canvas.RoundCap)
 	c.SetCoordSystem(canvas.CartesianIV)
+	c.SetStrokeJoiner(canvas.RoundJoin)
 
 	letterHeight := r.textHeight()
 	letterWidth := letterWidthRatio * letterHeight
 
-	var py float64
-	for i := range r.ph {
+	offset := dst.Bounds().Canon().Min
+	m := canvas.Identity.Translate(float64(-offset.X), float64(-offset.Y)).Scale(letterWidth/2, letterHeight/6)
+
+	for i, ph := range r.ph {
+		if len(ph) == 0 {
+			continue
+		}
+
+		p := base.Copy()
+		for _, ph := range ph {
+			p = p.Join(runes[ph])
+		}
+
 		lx := x + float64(i)*letterWidth
-		m := canvas.Identity.Translate(ox, oy).Scale(letterWidth, letterHeight)
-
-		var p canvas.Path
-		p.MoveTo(0, py)
-		p.LineTo(1, 1-py)
 		c.DrawPath(lx, 0, p.Transform(m))
-		c.Stroke()
-
-		py = 1 - py
 	}
 }
 
