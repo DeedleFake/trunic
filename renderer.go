@@ -6,6 +6,8 @@ import (
 )
 
 type Renderer struct {
+	Kerning int
+
 	ph [][]image.Image
 }
 
@@ -22,7 +24,7 @@ func (r *Renderer) Draw(dst draw.Image, dr image.Rectangle, src image.Image, sp 
 	dr = dr.Canon()
 
 	for i, ph := range r.ph {
-		dp := dr.Min.Add(image.Pt(i*letterWidth, 0))
+		dp := dr.Min.Add(image.Pt(i*(letterWidth+r.Kerning), 0))
 		dr := image.Rectangle{Min: dp, Max: dp.Add(image.Pt(letterWidth, letterHeight))}.Intersect(dr)
 
 		for _, img := range ph {
@@ -45,7 +47,7 @@ func (r *Renderer) Bounds() image.Rectangle {
 
 func (r *Renderer) Size() image.Point {
 	return image.Pt(
-		len(r.ph)*letterWidth,
+		len(r.ph)*(letterWidth+r.Kerning),
 		letterHeight,
 	)
 }
