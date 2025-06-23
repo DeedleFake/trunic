@@ -16,8 +16,8 @@ func main() {
 	r.AppendRune("s")
 	r.AppendRune("t")
 
-	img := image.NewRGBA(r.Bounds())
-	r.DrawTo(img)
+	img := image.NewRGBA(r.Bounds().Inset(-20))
+	r.DrawTo(img, 0, 0)
 	err := png.Encode(os.Stdout, img)
 	if err != nil {
 		panic(err)
