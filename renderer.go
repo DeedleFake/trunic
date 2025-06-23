@@ -64,10 +64,12 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 	var py float64
 	for i := range r.ph {
 		lx := x + float64(i)*letterWidth
-		m := canvas.Identity.Translate(ox, oy).Translate(lx, 0).Scale(letterWidth, letterHeight)
+		m := canvas.Identity.Translate(ox, oy).Scale(letterWidth, letterHeight)
 
-		c.MoveTo(t(0, py, m))
-		c.LineTo(t(1, 1-py, m))
+		var p canvas.Path
+		p.MoveTo(0, py)
+		p.LineTo(1, 1-py)
+		c.DrawPath(lx, 0, p.Transform(m))
 		c.Stroke()
 
 		py = 1 - py
