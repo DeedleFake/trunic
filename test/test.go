@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var r trunic.Renderer
-	r.AppendRune("t", "e")
+	r.AppendRune("t", "ɛ")
 	r.AppendRune("s")
 	r.AppendRune("t")
 

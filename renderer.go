@@ -68,9 +68,9 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 			continue
 		}
 
-		p := base.Copy()
+		p := &canvas.Path{}
 		for _, ph := range ph {
-			p = p.Join(runes[ph])
+			p = p.Join(pathFor(ph))
 		}
 
 		lx := x + float64(i)*letterWidth
