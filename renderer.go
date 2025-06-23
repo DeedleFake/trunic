@@ -14,27 +14,11 @@ import (
 const letterWidthRatio = .8
 
 type Renderer struct {
-	Kerning    float64     // Default: 0
-	TextHeight float64     // Default: 24
 	Color      color.Color // Default: color.Black
+	TextHeight float64     // Default: 72
 	Thickness  float64     // Default: 10
-	Resolution float64     // Default: 3
 
 	ph [][]string
-}
-
-func (r *Renderer) textHeight() float64 {
-	if r.TextHeight == 0 {
-		return 24
-	}
-	return r.TextHeight
-}
-
-func (r *Renderer) resolution() canvas.Resolution {
-	if r.Resolution == 0 {
-		return 3
-	}
-	return canvas.Resolution(r.Resolution)
 }
 
 func (r *Renderer) color() color.Color {
@@ -42,6 +26,13 @@ func (r *Renderer) color() color.Color {
 		return color.Black
 	}
 	return r.Color
+}
+
+func (r *Renderer) textHeight() float64 {
+	if r.TextHeight == 0 {
+		return 72
+	}
+	return r.TextHeight
 }
 
 func (r *Renderer) thickness() float64 {
@@ -56,12 +47,10 @@ func (r *Renderer) AppendRune(ph ...string) {
 }
 
 func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
-	resolution := r.resolution()
 	offset := dst.Bounds().Canon().Min
-	x -= float64(offset.X) / float64(resolution)
-	y -= float64(offset.Y) / float64(resolution)
+	ox, oy := float64(-offset.X), float64(-offset.Y)
 
-	renderer := rasterizer.FromImage(dst, resolution, nil)
+	renderer := rasterizer.FromImage(dst, 1, nil)
 
 	c := canvas.NewContext(renderer)
 	c.SetStrokeColor(r.color())
@@ -72,12 +61,16 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 	letterHeight := r.textHeight()
 	letterWidth := letterWidthRatio * letterHeight
 
+	var py float64
 	for i := range r.ph {
-		lx := x + float64(i)*(letterWidth+r.Kerning)
+		lx := x + float64(i)*letterWidth
+		m := canvas.Identity.Translate(ox, oy).Translate(lx, 0).Scale(letterWidth, letterHeight)
 
-		c.MoveTo(lx, y)
-		c.LineTo(lx+letterWidth, y+letterHeight)
+		c.MoveTo(t(0, py, m))
+		c.LineTo(t(1, 1-py, m))
 		c.Stroke()
+
+		py = 1 - py
 	}
 }
 
@@ -86,11 +79,16 @@ func (r *Renderer) Bounds() image.Rectangle {
 }
 
 func (r *Renderer) Size() image.Point {
-	height := float64(r.resolution()) * r.textHeight()
+	height := r.textHeight()
 	width := letterWidthRatio * height
 
 	return image.Pt(
-		len(r.ph)*int(math.Ceil(width+r.Kerning)),
+		len(r.ph)*int(math.Ceil(width)),
 		int(math.Ceil(height)),
 	)
+}
+
+func t(x, y float64, m canvas.Matrix) (float64, float64) {
+	p := m.Dot(canvas.Point{X: x, Y: y})
+	return p.X, p.Y
 }

@@ -9,9 +9,7 @@ import (
 )
 
 func main() {
-	r := trunic.Renderer{
-		Kerning: -2,
-	}
+	var r trunic.Renderer
 	r.AppendRune("t", "e")
 	r.AppendRune("s")
 	r.AppendRune("t")
