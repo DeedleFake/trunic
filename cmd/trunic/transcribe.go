@@ -36,7 +36,7 @@ type geminiTranscriber struct {
 }
 
 func newGeminiTranscriber(ctx context.Context) (*geminiTranscriber, error) {
-	const systemPrompt = `Repeat any text that you are given back verbatim transcribed with IPA preserving punctuation and using only phonemes from the set "b,tʃ,d,f,ɡ,h,dʒ,k,l,ɫ,m,n,ŋ,p,ɹ,s,ʃ,t,θ,ð,v,w,j,z,ʒ,æ,ɑɹ,ɑ,ɔ,eɪ,ɛ,i,ɪɹ,ə,ɛɹ,ɪ,aɪ,ɝ,oʊ,ɔɪ,u,ʊ,aʊ,ɔɹ,ʊɹ". Words are pronounced with a standard American accent. When such a pronunciation would require phonemes not in the provided set, you choose replacements from the set that are the closest possible being careful not to accidentally omit sounds.`
+	const systemPrompt = `Repeat all text that you are given verbatim rewritten in IPA. The result should be based on standard American pronunciation but should use only characters from "b,tʃ,d,f,ɡ,h,dʒ,k,l,ɫ,m,n,ŋ,p,ɹ,s,ʃ,t,θ,ð,v,w,j,z,ʒ,æ,ɑɹ,ɑ,ɔ,eɪ,ɛ,i,ɪɹ,ə,ɛɹ,ɪ,aɪ,ɝ,oʊ,ɔɪ,u,ʊ,aʊ,ɔɹ,ʊɹ" and absolutely no others. Preserve punctuation.`
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Backend: genai.BackendGeminiAPI,
@@ -56,7 +56,7 @@ func newGeminiTranscriber(ctx context.Context) (*geminiTranscriber, error) {
 }
 
 func (t *geminiTranscriber) Transcribe(ctx context.Context, text string) (string, error) {
-	const model = "gemini-2.0-flash-lite"
+	const model = "gemini-2.5-flash-lite-preview-06-17"
 
 	result, err := t.client.Models.GenerateContent(ctx, model, genai.Text(text), t.config)
 	if err != nil {
