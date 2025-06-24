@@ -58,15 +58,18 @@ func (r *Renderer) thickness() float64 {
 // zero, this method is a no-op.
 func (r *Renderer) Append(text string) {
 	addSpace := func() {}
+	if len(r.ph) != 0 {
+		addSpace = func() { r.AppendRune() }
+	}
 
 	text = strings.TrimSpace(text)
 	for word := range strings.FieldsSeq(text) {
+		addSpace()
+		addSpace = func() { r.AppendRune() }
+
 		for ph := range Runes(word) {
 			r.AppendRune(ph...)
 		}
-
-		addSpace()
-		addSpace = func() { r.AppendRune() }
 	}
 }
 
