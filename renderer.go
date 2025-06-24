@@ -6,6 +6,7 @@ import (
 	"image/draw"
 	"math"
 	"slices"
+	"strings"
 
 	"github.com/tdewolff/canvas"
 	"github.com/tdewolff/canvas/renderers/rasterizer"
@@ -43,11 +44,32 @@ func (r *Renderer) thickness() float64 {
 	return r.Thickness
 }
 
+// Append is a high-level function that appends text to the Renderer's
+// internal buffer. The text is expected to be a sequence of words
+// written in IPA characters. Leading and trailing whitespace is
+// trimmed, all unrecognized characters are stripped via [Normalize],
+// the characters in words are parsed into pairs via [Runes], and
+// these are then appended one-by-one via [AppendRune].
+//
+// If there is already anything in the buffer when Append is called,
+// a space is inserted first.
+//
+// If the length of the text to be inserted after normalization is
+// zero, this method is a no-op.
+func (r *Renderer) Append(text string) {
+	text = strings.TrimSpace(text)
+	for word := range strings.FieldsSeq(text) {
+		for ph := range Runes(word) {
+			r.AppendRune(ph...)
+		}
+	}
+}
+
 // AppendRune is a low-level method that appends pieces of runes to
 // the Renderer's internal buffer. Each call appends a single rune
 // which is drawn by overlapping all of the symbols corresponding to
 // the strings passed. Generally speaking, this is a single vowel and
-// a single consonant.
+// a single consonant, possibly including a reversing circle.
 func (r *Renderer) AppendRune(ph ...string) {
 	r.ph = append(r.ph, slices.Clone(ph))
 }
@@ -82,7 +104,7 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 
 		p := &canvas.Path{}
 		for _, ph := range ph {
-			p = p.Join(pathFor(ph))
+			p = p.Join(pathFor(ph).Copy())
 		}
 
 		lx := float64(i) * letterWidth

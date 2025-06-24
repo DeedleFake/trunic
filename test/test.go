@@ -10,9 +10,7 @@ import (
 
 func main() {
 	var r trunic.Renderer
-	r.AppendRune("t", "ɛ")
-	r.AppendRune("s")
-	r.AppendRune("t")
+	r.Append("tɛst")
 
 	img := image.NewRGBA(r.Bounds().Inset(-20))
 	r.DrawTo(img, 0, 0)

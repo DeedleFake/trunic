@@ -2,8 +2,12 @@
 package trunic
 
 import (
+	"cmp"
 	"fmt"
+	"maps"
+	"slices"
 
+	"deedles.dev/xiter"
 	"github.com/tdewolff/canvas"
 )
 
@@ -59,6 +63,8 @@ var (
 		"ʊɹ": maskToPath(0b111011100000000),
 	}
 
+	prefixes = loadPrefixes()
+
 	lines = [...]func(*canvas.Path){
 		lineFunc(0, 3, 2, 3),
 		lineFunc(1, 0, 2, 1),
@@ -103,4 +109,14 @@ func pathFor(ph string) *canvas.Path {
 		return p
 	}
 	panic(fmt.Errorf("path not found for %q", ph))
+}
+
+func loadPrefixes() []string {
+	return slices.SortedFunc(
+		xiter.Concat(
+			maps.Keys(consonants),
+			maps.Keys(vowels),
+		),
+		func(s1, s2 string) int { return cmp.Compare(len(s2), len(s1)) },
+	)
 }
