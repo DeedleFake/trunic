@@ -80,13 +80,17 @@ func run(ctx context.Context) error {
 
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
-		text, err := t.Transcribe(ctx, s.Text())
+		text := s.Text()
+		transcribed, err := t.Transcribe(ctx, text)
 		if err != nil {
 			return fmt.Errorf("transcribe: %w", err)
 		}
+		if *transcriber != "" {
+			slog.Info("transcription", "transcriber", *transcriber, "text", text, "result", transcribed)
+		}
 
 		var r trunic.Renderer
-		r.Append(text)
+		r.Append(transcribed)
 		img := image.NewRGBA(r.Bounds().Inset(-20))
 		draw.Draw(img, img.Bounds(), image.White, image.Point{}, draw.Src)
 		r.DrawTo(img, 0, 0)
