@@ -109,24 +109,13 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 			continue
 		}
 
-		var fill bool
-		p := &canvas.Path{}
-		for _, ph := range ph {
-			p = p.Join(pathFor(ph).Copy())
-			fill = fill || slices.Contains(filled, ph)
-		}
-
 		lx := float64(i) * letterWidth
-		if !fill {
-			c.DrawPath(lx, 0, p.Transform(m))
-			continue
-		}
 
-		stroke := c.Style.Stroke
-		c.SetFillColor(color)
-		c.DrawPath(lx, 0, p.Transform(m))
-		c.SetFill(canvas.Paint{})
-		c.SetStroke(stroke)
+		var p canvas.Path
+		for _, ph := range ph {
+			pathFor(ph).CopyTo(&p).Transform(m)
+			c.DrawPath(lx, 0, &p)
+		}
 	}
 }
 
@@ -151,4 +140,15 @@ func (r *Renderer) Size() image.Point {
 		len(r.ph)*int(math.Ceil(width)),
 		int(math.Ceil(height)),
 	)
+}
+
+func fillPath(c *canvas.Context, x, y float64, p ...*canvas.Path) {
+	stroke := c.Style.Stroke
+	c.SetStroke(canvas.Paint{})
+	defer c.SetStroke(stroke)
+
+	c.SetFill(stroke)
+	defer c.SetFill(canvas.Paint{})
+
+	c.DrawPath(x, y, p...)
 }

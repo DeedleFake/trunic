@@ -65,11 +65,12 @@ var (
 
 	symbols = map[string]*canvas.Path{
 		"*": canvas.Ellipse(.5*letterWidthRatio, .5).Translate(1, 6.5),
-		".": canvas.Ellipse(.3*letterWidthRatio, .3).Translate(1, 3),
-	}
-
-	filled = []string{
-		".",
+		".": canvas.Ellipse(.2*letterWidthRatio, .2).Translate(1, 3),
+		"?": canvas.Ellipse(.1*letterWidthRatio, .1).Translate(1, 5).
+			Join(canvas.EllipticalArc(.8*letterWidthRatio, .8, 0, -90, 90).Translate(1, 1.5)).
+			Join(canvas.Line(0, .5).Translate(1, 1.5+1.6)),
+		"!": canvas.Ellipse(.1*letterWidthRatio, .1).Translate(1, 5).
+			Join(canvas.Line(0, 2).Translate(1, 1.5)),
 	}
 
 	prefixes = loadPrefixes()
