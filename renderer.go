@@ -57,11 +57,16 @@ func (r *Renderer) thickness() float64 {
 // If the length of the text to be inserted after normalization is
 // zero, this method is a no-op.
 func (r *Renderer) Append(text string) {
+	addSpace := func() {}
+
 	text = strings.TrimSpace(text)
 	for word := range strings.FieldsSeq(text) {
 		for ph := range Runes(word) {
 			r.AppendRune(ph...)
 		}
+
+		addSpace()
+		addSpace = func() { r.AppendRune() }
 	}
 }
 
@@ -78,11 +83,13 @@ func (r *Renderer) AppendRune(ph ...string) {
 // corner at (x, y). The coordinates are relative to (0, 0), not to
 // the top-left of dst's bounding box.
 func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
+	color := r.color()
+
 	renderer := rasterizer.FromImage(dst, 1, nil)
 
 	c := canvas.NewContext(renderer)
 	c.SetFill(canvas.Paint{})
-	c.SetStrokeColor(r.color())
+	c.SetStrokeColor(color)
 	c.SetStrokeWidth(r.thickness())
 	c.SetStrokeCapper(canvas.RoundCap)
 	c.SetCoordSystem(canvas.CartesianIV)
@@ -95,20 +102,31 @@ func (r *Renderer) DrawTo(dst draw.Image, x, y float64) {
 	m := canvas.Identity.
 		Translate(x, y).
 		Translate(float64(-offset.X), float64(-offset.Y)).
-		Scale(letterWidth/2, letterHeight/6)
+		Scale(letterWidth/2, letterHeight/6.5)
 
 	for i, ph := range r.ph {
 		if len(ph) == 0 {
 			continue
 		}
 
+		var fill bool
 		p := &canvas.Path{}
 		for _, ph := range ph {
 			p = p.Join(pathFor(ph).Copy())
+			fill = fill || slices.Contains(filled, ph)
 		}
 
 		lx := float64(i) * letterWidth
+		if !fill {
+			c.DrawPath(lx, 0, p.Transform(m))
+			continue
+		}
+
+		stroke := c.Style.Stroke
+		c.SetFillColor(color)
 		c.DrawPath(lx, 0, p.Transform(m))
+		c.SetFill(canvas.Paint{})
+		c.SetStroke(stroke)
 	}
 }
 

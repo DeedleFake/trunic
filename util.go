@@ -1,6 +1,7 @@
 package trunic
 
 import (
+	"fmt"
 	"iter"
 	"strings"
 	"unicode/utf8"
@@ -23,6 +24,7 @@ func validPrefixes(text string) iter.Seq[string] {
 			if !ok {
 				_, i := utf8.DecodeRuneInString(text)
 				text = text[i:]
+				continue
 			}
 
 			if !yield(prefix) {
@@ -62,6 +64,9 @@ func Runes(text string) iter.Seq[[]string] {
 			case 0:
 				y = append(y, prefix)
 				if !IsLetter(prefix) {
+					if prefix == " " {
+						y = y[:0]
+					}
 					if !yield(y) {
 						return
 					}
@@ -73,7 +78,11 @@ func Runes(text string) iter.Seq[[]string] {
 					if !yield(y) {
 						return
 					}
+
 					y[0] = prefix
+					if prefix == " " {
+						y = y[:0]
+					}
 					if !yield(y) {
 						return
 					}
@@ -83,8 +92,7 @@ func Runes(text string) iter.Seq[[]string] {
 
 				switch {
 				case IsVowel(y[0]) && IsConsonant(prefix):
-					y = append(y, prefix)
-					// TODO: Add circle.
+					y = append(y, prefix, "*")
 
 				case IsConsonant(y[0]) && IsVowel(prefix):
 					y = append(y, prefix)
@@ -98,6 +106,9 @@ func Runes(text string) iter.Seq[[]string] {
 					continue
 				}
 				y[0] = prefix
+
+			default:
+				panic(fmt.Errorf("invalid len(y): %v", len(y)))
 			}
 		}
 
@@ -122,4 +133,11 @@ func IsVowel(ph string) bool {
 // IsLetter returns true if ph is a consonant or a vowel.
 func IsLetter(ph string) bool {
 	return IsConsonant(ph) || IsVowel(ph)
+}
+
+// IsSymbol returns true if ph is a symbol, such as punctuation or a
+// reversing circle.
+func IsSymbol(ph string) bool {
+	_, ok := symbols[ph]
+	return ok
 }

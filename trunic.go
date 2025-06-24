@@ -63,9 +63,18 @@ var (
 		"ʊɹ": maskToPath(0b111011100000000),
 	}
 
+	symbols = map[string]*canvas.Path{
+		"*": canvas.Ellipse(.5*letterWidthRatio, .5).Translate(1, 6.5),
+		".": canvas.Ellipse(.3*letterWidthRatio, .3).Translate(1, 3),
+	}
+
+	filled = []string{
+		".",
+	}
+
 	prefixes = loadPrefixes()
 
-	lines = [...]func(*canvas.Path){
+	lines = []func(*canvas.Path){
 		lineFunc(0, 3, 2, 3),
 		lineFunc(1, 0, 2, 1),
 		lineFunc(2, 5, 1, 6),
@@ -108,6 +117,9 @@ func pathFor(ph string) *canvas.Path {
 	if p := vowels[ph]; p != nil {
 		return p
 	}
+	if p := symbols[ph]; p != nil {
+		return p
+	}
 	panic(fmt.Errorf("path not found for %q", ph))
 }
 
@@ -116,6 +128,7 @@ func loadPrefixes() []string {
 		xiter.Concat(
 			maps.Keys(consonants),
 			maps.Keys(vowels),
+			maps.Keys(symbols),
 		),
 		func(s1, s2 string) int { return cmp.Compare(len(s2), len(s1)) },
 	)
