@@ -36,7 +36,7 @@ type geminiTranscriber struct {
 }
 
 func newGeminiTranscriber(ctx context.Context) (*geminiTranscriber, error) {
-	const systemPrompt = `You are a text translator that takes any text that you are given and repeats it back verbatim transcribed with IPA preserving punctuation and using only phonemes from the set "b,tʃ,d,f,ɡ,h,dʒ,k,l,ɫ,m,n,ŋ,p,ɹ,s,ʃ,t,θ,ð,v,w,j,z,ʒ,æ,ɑɹ,ɑ,ɔ,eɪ,ɛ,i,ɪɹ,ə,ɛɹ,ɪ,aɪ,ɝ,oʊ,ɔɪ,u,ʊ,aʊ,ɔɹ,ʊɹ". Words are pronounced with a standard American accent. When such a pronunciation would require phonemes not in the provided set, you choose replacements from the set that are the closest possible being careful not to accidentally omit sounds.`
+	const systemPrompt = `Repeat any text that you are given back verbatim transcribed with IPA preserving punctuation and using only phonemes from the set "b,tʃ,d,f,ɡ,h,dʒ,k,l,ɫ,m,n,ŋ,p,ɹ,s,ʃ,t,θ,ð,v,w,j,z,ʒ,æ,ɑɹ,ɑ,ɔ,eɪ,ɛ,i,ɪɹ,ə,ɛɹ,ɪ,aɪ,ɝ,oʊ,ɔɪ,u,ʊ,aʊ,ɔɹ,ʊɹ". Words are pronounced with a standard American accent. When such a pronunciation would require phonemes not in the provided set, you choose replacements from the set that are the closest possible being careful not to accidentally omit sounds.`
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Backend: genai.BackendGeminiAPI,
