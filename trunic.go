@@ -71,6 +71,8 @@ var (
 			Join(canvas.Line(0, .5).Translate(1, 1.5+1.6)),
 		"!": canvas.Ellipse(.1*letterWidthRatio, .1).Translate(1, 5).
 			Join(canvas.Line(0, 2).Translate(1, 1.5)),
+		",": canvas.Ellipse(.2*letterWidthRatio, .2).Translate(1, 2.5).
+			Join(canvas.Line(-.2, .5).Translate(1.1, 2.6)),
 	}
 
 	prefixes = loadPrefixes()
