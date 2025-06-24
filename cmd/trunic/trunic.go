@@ -12,7 +12,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"os/signal"
 
 	"deedles.dev/trunic"
 )
@@ -69,14 +68,25 @@ func writeImage(output string, img image.Image) error {
 
 func run(ctx context.Context) error {
 	output := flag.String("o", "", "output filename (empty for stdout)")
+	transcriber := flag.String("t", "", "transcriber to IPA (possible values: gemini)")
 	flag.Parse()
+
+	t, err := NewTranscriber(ctx, *transcriber)
+	if err != nil {
+		return fmt.Errorf("create transcriber: %w", err)
+	}
 
 	var lines imageLines
 
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
+		text, err := t.Transcribe(ctx, s.Text())
+		if err != nil {
+			return fmt.Errorf("transcribe: %w", err)
+		}
+
 		var r trunic.Renderer
-		r.Append(s.Text())
+		r.Append(text)
 		img := image.NewRGBA(r.Bounds().Inset(-20))
 		draw.Draw(img, img.Bounds(), image.White, image.Point{}, draw.Src)
 		r.DrawTo(img, 0, 0)
@@ -90,7 +100,7 @@ func run(ctx context.Context) error {
 		return nil
 	}
 
-	err := writeImage(*output, lines)
+	err = writeImage(*output, lines)
 	if err != nil {
 		return fmt.Errorf("write image: %w", err)
 	}
@@ -99,10 +109,7 @@ func run(ctx context.Context) error {
 }
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-
-	err := run(ctx)
+	err := run(context.Background())
 	if err != nil {
 		slog.Error("failed", "err", err)
 		os.Exit(1)
