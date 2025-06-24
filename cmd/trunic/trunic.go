@@ -24,23 +24,28 @@ func (img imageLines) ColorModel() color.Model {
 }
 
 func (img imageLines) Bounds() (r image.Rectangle) {
-	var prev image.Point
 	for _, s := range img {
 		bounds := s.Bounds().Canon()
-		r = r.Union(bounds.Add(prev))
-		prev = image.Pt(bounds.Min.X, bounds.Max.Y)
+		bounds = image.Rect(bounds.Min.X, r.Max.Y, bounds.Max.X, r.Max.Y+bounds.Dy())
+		r = r.Union(bounds)
 	}
 	return r
 }
 
 func (img imageLines) At(x, y int) color.Color {
 	p := image.Pt(x, y)
+
+	var prev image.Rectangle
 	for _, s := range img {
-		if p.In(s.Bounds()) {
-			return s.At(x, y)
+		ibounds := s.Bounds().Canon()
+		bounds := image.Rect(ibounds.Min.X, prev.Max.Y, ibounds.Max.X, prev.Max.Y+ibounds.Dy())
+		if p.In(bounds) {
+			p = p.Add(ibounds.Min.Sub(bounds.Min))
+			return s.At(p.X, p.Y)
 		}
+		prev = bounds
 	}
-	return color.Transparent
+	return img.ColorModel().Convert(color.White)
 }
 
 func writeImage(output string, img image.Image) error {
@@ -80,6 +85,9 @@ func run(ctx context.Context) error {
 	}
 	if err := s.Err(); err != nil {
 		return fmt.Errorf("read line from input: %w", err)
+	}
+	if len(lines) == 0 {
+		return nil
 	}
 
 	err := writeImage(*output, lines)
